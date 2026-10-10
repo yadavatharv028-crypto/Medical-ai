@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Appointment – MediPredictAI</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body class="app-body">
+
+  {% include 'partials/navbar.html' %}
+
+  <div class="container py-5">
+    <div class="row g-4">
+
+      <!-- Doctor Directory -->
+      <div class="col-lg-7">
+        <div class="card-glass">
+          <div class="card-glass-header mb-3">
+            <i class="bi bi-people-fill text-accent me-2"></i>Find a Doctor
+          </div>
+
+          <!-- Filter -->
+          <form method="GET" class="d-flex gap-2 mb-4">
+            <select name="specialization" class="form-select">
+              <option value="">All Specializations</option>
+              {% for s in specializations %}
+              <option value="{{ s.specialization }}" {% if s.specialization == selected_spec %}selected{% endif %}>
+                {{ s.specialization }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-accent px-3">
+              <i class="bi bi-search"></i>
+            </button>
+
+            {% if selected_spec %}
+            <a href="{{ url_for('appointment') }}" class="btn btn-outline-secondary">Clear</a>
+            {% endif %}
+          </form>
+
+          {% if doctors %}
+          <div class="row g-3">
+
+            {% for doc in doctors %}
+            <div class="col-md-6">
+              <div class="doctor-card"
+                   onclick="selectDoctor(this)"
+                   data-id="{{ doc.id }}"
+                   data-name="{{ doc.name }}"
+                   data-spec="{{ doc.specialization }}">
+
+                <div class="doc-avatar">{{ doc.name[0] }}</div>
+
+                <div class="doc-info">
+                  <div class="fw-semibold">Dr. {{ doc.name }}</div>
+                  <div class="small text-muted">
+                    <i class="bi bi-heart-pulse me-1"></i>{{ doc.specialization }}
+                  </div>
+                </div>
+
+                <div class="doc-select-dot"></div>
+              </div>
+            </div>
+            {% endfor %}
+
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <i class="bi bi-person-x display-5 text-muted"></i>
+            <p>No doctors found.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <div class="col-lg-5">
+        <div class="card-glass">
+
+          <div class="card-glass-header mb-3">
+            <i class="bi bi-calendar-plus-fill text-accent me-2"></i>Booking Details
+          </div>
+
+          <form method="POST">
+
+            <!-- Hidden doctor id -->
+            <input type="hidden" name="doctor_id" id="selectedDoctorId" />
+
+            <!-- Selected Doctor -->
+            <div class="mb-3">
+              <label class="form-label">Selected Doctor</label>
+
+              <div id="selectedDoctorDisplay" class="selected-doctor-display">
+                <i class="bi bi-person-circle text-muted me-2"></i>
+                <span class="text-muted">Click a doctor on the left to select</span>
+              </div>
+            </div>
+
+            <!-- Patient -->
+            <div class="mb-3">
+              <label class="form-label">Patient Name</label>
+              <input type="text" class="form-control" value="{{ session.name }}" readonly />
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+              <label class="form-label">Appointment Date</label>
+              <input type="date" name="appointment_date" class="form-control" required />
+            </div>
+
+            <!-- Symptoms -->
+            <div class="mb-4">
+              <label class="form-label">Describe Symptoms</label>
+              <textarea name="symptoms" class="form-control" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-accent w-100">
+              Confirm Booking
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script>
+    function selectDoctor(el) {
+      const id = el.dataset.id;
+      const name = el.dataset.name;
+      const spec = el.dataset.spec;
+
+      // set hidden input
+      document.getElementById("selectedDoctorId").value = id;
+
+      // update UI
+      document.getElementById("selectedDoctorDisplay").innerHTML =
+        `<i class="bi bi-person-circle text-accent me-2"></i>
+         <strong>Dr. ${name}</strong>
+         <span class="ms-2 text-muted small">${spec}</span>`;
+
+      // remove previous selection
+      document.querySelectorAll(".doctor-card").forEach(c => c.classList.remove("selected"));
+      document.querySelectorAll(".doc-select-dot").forEach(d => d.classList.remove("active"));
+
+      // add selection
+      el.classList.add("selected");
+
+      const dot = el.querySelector(".doc-select-dot");
+      if (dot) dot.classList.add("active");
+    }
+  </script>
+
+</body>
+</html>

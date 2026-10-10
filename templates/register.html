@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – MediPredictAI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="auth-body">
+  <div class="auth-split">
+    <!-- Left panel -->
+    <div class="auth-panel-left d-none d-lg-flex">
+      <div class="auth-left-content">
+        <a href="{{ url_for('index') }}" class="brand-logo mb-5 d-block">
+          <i class="bi bi-heart-pulse-fill text-accent me-2"></i>MediPredict<span class="text-accent">AI</span>
+        </a>
+        <h2 class="auth-headline">Join thousands of patients taking control of their health.</h2>
+        <ul class="auth-bullet-list mt-4">
+          <li><i class="bi bi-check-circle-fill text-accent me-2"></i>AI-powered symptom analysis</li>
+          <li><i class="bi bi-check-circle-fill text-accent me-2"></i>Book appointments instantly</li>
+          <li><i class="bi bi-check-circle-fill text-accent me-2"></i>Track your prediction history</li>
+          <li><i class="bi bi-check-circle-fill text-accent me-2"></i>100% private and secure</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+        <h3 class="auth-form-title">Create Account</h3>
+        <p class="text-muted mb-4">It only takes a minute.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+              {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" novalidate id="registerForm">
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" name="name" class="form-control" placeholder="Jane Doe" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" name="email" class="form-control" placeholder="jane@example.com" required />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" name="password" id="pw" class="form-control" placeholder="Min 6 characters" required />
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePw('pw','eyePw')">
+                <i class="bi bi-eye" id="eyePw"></i>
+              </button>
+            </div>
+            <div class="password-strength mt-1" id="pwStrength"></div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              <input type="password" name="confirm_password" id="cpw" class="form-control" placeholder="Repeat password" required />
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePw('cpw','eyeCpw')">
+                <i class="bi bi-eye" id="eyeCpw"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-accent w-100 btn-lg">Create Account</button>
+        </form>
+
+        <p class="text-center mt-4 text-muted small">Already have an account? <a href="{{ url_for('login') }}" class="text-accent">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function togglePw(id, iconId) {
+      const el = document.getElementById(id);
+      const ic = document.getElementById(iconId);
+      if (el.type === 'password') { el.type = 'text'; ic.className = 'bi bi-eye-slash'; }
+      else { el.type = 'password'; ic.className = 'bi bi-eye'; }
+    }
+    document.getElementById('pw').addEventListener('input', function() {
+      const v = this.value; let s = 0;
+      if (v.length >= 6) s++; if (v.length >= 10) s++; if (/[A-Z]/.test(v)) s++; if (/[0-9]/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+      const labels = ['','Weak','Fair','Good','Strong','Very Strong'];
+      const colors = ['','#e74c3c','#e67e22','#f1c40f','#2ecc71','#27ae60'];
+      const el = document.getElementById('pwStrength');
+      el.innerHTML = s ? `<small style="color:${colors[s]}">${labels[s]}</small>` : '';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard – MediPredictAI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="app-body">
+
+  {% include 'partials/navbar.html' %}
+
+  <div class="container-fluid py-4 px-4">
+    <h2 class="dash-title mb-1">Admin Dashboard</h2>
+    <p class="text-muted mb-4">Full system management and overview.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} alert-dismissible fade show">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+      {% set stat_items = [
+        ('bi-people-fill','Patients', stats.total_users,'text-primary'),
+        ('bi-person-badge-fill','Doctors', stats.total_doctors,'text-success'),
+        ('bi-calendar-fill','Appointments', stats.total_appointments,'text-warning'),
+        ('bi-cpu-fill','Predictions', stats.total_predictions,'text-info'),
+      ] %}
+      {% for icon, label, val, col in stat_items %}
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-card-icon {{ col }}"><i class="bi {{ icon }}"></i></div>
+          <div class="stat-card-val">{{ val }}</div>
+          <div class="stat-card-label">{{ label }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs-dark mb-3" id="adminTabs" role="tablist">
+      <li class="nav-item"><button class="nav-link-dark active" data-bs-toggle="tab" data-bs-target="#tabUsers">Users</button></li>
+      <li class="nav-item"><button class="nav-link-dark" data-bs-toggle="tab" data-bs-target="#tabDoctors">Doctors</button></li>
+      <li class="nav-item"><button class="nav-link-dark" data-bs-toggle="tab" data-bs-target="#tabAppts">Appointments</button></li>
+      <li class="nav-item"><button class="nav-link-dark" data-bs-toggle="tab" data-bs-target="#tabPreds">Predictions</button></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- Users Tab -->
+      <div class="tab-pane fade show active" id="tabUsers">
+        <div class="card-glass">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+              <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+              <tbody>
+                {% for u in users %}
+                <tr>
+                  <td class="text-muted">{{ u.id }}</td>
+                  <td>{{ u.name }}</td>
+                  <td class="small text-muted">{{ u.email }}</td>
+                  <td><span class="badge role-badge role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctors Tab -->
+      <div class="tab-pane fade" id="tabDoctors">
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="card-glass">
+              <div class="card-glass-header mb-3"><i class="bi bi-people-fill text-accent me-2"></i>Doctor Roster</div>
+              <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                  <thead><tr><th>#</th><th>Name</th><th>Specialization</th><th>Action</th></tr></thead>
+                  <tbody>
+                    {% for d in doctors %}
+                    <tr>
+                      <td>{{ d.id }}</td>
+                      <td class="fw-semibold">Dr. {{ d.name }}</td>
+                      <td class="small text-muted">{{ d.specialization }}</td>
+                      <td>
+                        <form method="POST" action="{{ url_for('admin_delete_doctor', doctor_id=d.id) }}"
+                          onsubmit="return confirm('Remove Dr. {{ d.name }}?')">
+                          <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="card-glass">
+              <div class="card-glass-header mb-3"><i class="bi bi-person-plus-fill text-accent me-2"></i>Add Doctor</div>
+              <form method="POST" action="{{ url_for('admin_add_doctor') }}">
+                <div class="mb-3">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" name="name" class="form-control" placeholder="Dr. Smith" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Specialization</label>
+                  <input type="text" name="specialization" class="form-control" placeholder="Cardiologist" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Login Email</label>
+                  <input type="email" name="email" class="form-control" required />
+                </div>
+                <div class="mb-4">
+                  <label class="form-label">Password</label>
+                  <input type="password" name="password" class="form-control" minlength="6" required />
+                </div>
+                <button type="submit" class="btn btn-accent w-100">Add Doctor</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments Tab -->
+      <div class="tab-pane fade" id="tabAppts">
+        <div class="card-glass">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+              <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for a in appointments %}
+                <tr>
+                  <td>{{ a.id }}</td>
+                  <td>{{ a.patient_name }}</td>
+                  <td>Dr. {{ a.doctor_name }}</td>
+                  <td class="small">{{ a.appointment_date }}</td>
+                  <td><span class="badge status-badge status-{{ a.status }}">{{ a.status|capitalize }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Predictions Tab -->
+      <div class="tab-pane fade" id="tabPreds">
+        <div class="card-glass">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+              <thead><tr><th>#</th><th>User</th><th>Disease</th><th>Confidence</th><th>Date</th></tr></thead>
+              <tbody>
+                {% for p in predictions %}
+                <tr>
+                  <td>{{ p.id }}</td>
+                  <td>{{ p.user_name }}</td>
+                  <td class="fw-semibold">{{ p.predicted_disease }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="mini-bar-bg" style="width:80px"><div class="mini-bar-fill" style="width:{{ p.confidence }}%"></div></div>
+                      <span class="badge bg-accent text-dark">{{ p.confidence }}%</span>
+                    </div>
+                  </td>
+                  <td class="small text-muted">{{ p.date.strftime('%d %b %Y') if p.date else '–' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
